@@ -12,8 +12,11 @@ from database import (
     is_database_configured,
 )
 import hashlib
+import re
 import time
 import uuid
+
+LICENSE_KEY_PATTERN = re.compile(r"^YA-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$")
 
 
 @asynccontextmanager
@@ -99,7 +102,8 @@ async def generate_license(request: LicenseGenerateRequest):
 
 @app.post("/api/license/validate", response_model=LicenseValidateResponse)
 async def validate_license(request: LicenseValidateRequest):
-    if not request.license_key or not request.license_key.startswith("YA-"):
+    license_key = request.license_key.strip().upper()
+    if not LICENSE_KEY_PATTERN.match(license_key):
         raise HTTPException(status_code=400, detail="Invalid license key format")
 
     if not is_database_configured():
@@ -109,7 +113,7 @@ async def validate_license(request: LicenseValidateRequest):
         )
 
     try:
-        result = validate_license_key(request.license_key)
+        result = validate_license_key(license_key)
     except Exception:
         raise HTTPException(
             status_code=503,

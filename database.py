@@ -58,6 +58,7 @@ def store_license(email: str, license_key: str) -> None:
 
 
 def validate_license_key(license_key: str) -> dict:
+    license_key = license_key.strip().upper()
     with get_cursor() as cur:
         cur.execute(
             "SELECT license_key, is_active FROM licenses WHERE license_key = %s",
